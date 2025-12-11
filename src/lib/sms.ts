@@ -222,28 +222,28 @@ export async function sendBookingConfirmationSms(
   try {
     const message = `Booking confirmed! Expert: ${expertName}, Amount: KES ${amount}, Receipt: ${receiptNumber}. Thank you for using BiashaDrive!`;
     
-    const apiKey = process.env.AFRICASTALKING_API_KEY;
-    const username = process.env.AFRICASTALKING_USERNAME || 'sandbox';
+    const apiKey = process.env.INFOBIP_API_KEY;
+    const apiBaseUrl = process.env.INFOBIP_API_URL || 'https://k9dxme.api.infobip.com';
 
     if (!apiKey) {
       return { success: false, error: 'SMS service not configured' };
     }
 
-    const response = await axios.post<AfricasTalkingResponse>(
-      'https://api.africastalking.com/version1/messaging',
+    const response = await axios.post<InfobipResponse>(
+      `${apiBaseUrl}/sms/2/text/advanced`,
       {
-        username,
-        APIkey: apiKey,
-        recipients: [
+        messages: [
           {
-            phoneNumber: phone,
-            message: message
+            destinations: [{ to: phone }],
+            text: message,
+            from: 'BiashaDrive'
           }
         ]
       },
       {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `App ${apiKey}`,
+          'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         timeout: 10000
@@ -251,11 +251,11 @@ export async function sendBookingConfirmationSms(
     );
 
     const data = response.data;
-    if (
-      data.SMSMessageData?.Recipients &&
-      data.SMSMessageData.Recipients[0]?.statusCode === 101
-    ) {
-      return { success: true };
+    if (data.messages && data.messages.length > 0) {
+      const msg = data.messages[0];
+      if (msg.status.groupId === 1 || msg.status.groupId === 0) {
+        return { success: true };
+      }
     }
 
     return { success: false, error: 'Failed to send confirmation SMS' };
@@ -277,28 +277,28 @@ export async function sendExpertNotificationSms(
   try {
     const message = `New booking! Client: ${userName}, Service: ${serviceType}. Review at BiashaDrive app. Booking ID: ${bookingId}`;
     
-    const apiKey = process.env.AFRICASTALKING_API_KEY;
-    const username = process.env.AFRICASTALKING_USERNAME || 'sandbox';
+    const apiKey = process.env.INFOBIP_API_KEY;
+    const apiBaseUrl = process.env.INFOBIP_API_URL || 'https://k9dxme.api.infobip.com';
 
     if (!apiKey) {
       return { success: false, error: 'SMS service not configured' };
     }
 
-    const response = await axios.post<AfricasTalkingResponse>(
-      'https://api.africastalking.com/version1/messaging',
+    const response = await axios.post<InfobipResponse>(
+      `${apiBaseUrl}/sms/2/text/advanced`,
       {
-        username,
-        APIkey: apiKey,
-        recipients: [
+        messages: [
           {
-            phoneNumber: expertPhone,
-            message: message
+            destinations: [{ to: expertPhone }],
+            text: message,
+            from: 'BiashaDrive'
           }
         ]
       },
       {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `App ${apiKey}`,
+          'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         timeout: 10000
@@ -306,11 +306,11 @@ export async function sendExpertNotificationSms(
     );
 
     const data = response.data;
-    if (
-      data.SMSMessageData?.Recipients &&
-      data.SMSMessageData.Recipients[0]?.statusCode === 101
-    ) {
-      return { success: true };
+    if (data.messages && data.messages.length > 0) {
+      const msg = data.messages[0];
+      if (msg.status.groupId === 1 || msg.status.groupId === 0) {
+        return { success: true };
+      }
     }
 
     return { success: false, error: 'Failed to send expert notification' };

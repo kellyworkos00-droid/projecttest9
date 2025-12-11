@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     // Log for debugging
     console.log(`📱 OTP generated for ${phone}: ${code} (Expires in 10 minutes)`);
 
-    // Send SMS via Africa's Talking
+    // Send SMS via Infobip
     const smsResult = await sendVerificationCode(phone, code);
 
     if (smsResult.success) {
