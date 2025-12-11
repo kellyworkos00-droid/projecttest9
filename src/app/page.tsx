@@ -21,8 +21,8 @@ export default function HomePage() {
               <Link href="#how-it-works" className="text-charcoal hover:text-primary transition-colors">
                 How It Works
               </Link>
-              <Link href="#pricing" className="text-charcoal hover:text-primary transition-colors">
-                Pricing
+              <Link href="/experts" className="text-charcoal hover:text-primary transition-colors">
+                Experts
               </Link>
             </nav>
             <div className="flex items-center gap-4">
