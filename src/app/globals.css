@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-mulish: 'Mulish', system-ui, sans-serif;
+  --font-space-grotesk: 'Space Grotesk', sans-serif;
+}
+
+body {
+  color: #1D1D1B;
+  background: #FFFFFF;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
