@@ -42,9 +42,13 @@ export async function POST(request: Request) {
       });
 
       // Update booking if exists
-      if (transaction.booking) {
+      const booking = await prisma.booking.findFirst({
+        where: { transactionId: transaction.id },
+      });
+
+      if (booking) {
         await prisma.booking.update({
-          where: { transactionId: transaction.id },
+          where: { id: booking.id },
           data: { status: 'confirmed' },
         });
       }
