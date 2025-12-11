@@ -1,0 +1,169 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  phone         String   @unique
+  whatsapp      String?
+  email         String?
+  name          String?
+  businessName  String?
+  county        String?
+  sector        String?
+  stage         String?  // startup, growing, established
+  language      String   @default("en") // en, sw
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  diagnostics   Diagnostic[]
+  savedPlaybooks SavedPlaybook[]
+  bookings      Booking[]
+  transactions  Transaction[]
+}
+
+model Diagnostic {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  domain        String   // cashflow, compliance, marketing, operations
+  status        String   @default("in-progress") // in-progress, completed
+  responses     Json     // Question responses
+  score         Int?
+  actionPlan    Json?    // Generated action items
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([userId])
+}
+
+model Playbook {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  title         String
+  titleSw       String?  // Swahili translation
+  description   String
+  descriptionSw String?
+  content       String   @db.Text
+  contentSw     String?  @db.Text
+  domain        String   // cashflow, compliance, marketing, operations, legal
+  sector        String?  // Optional sector filter
+  county        String?  // Optional county filter
+  effort        String   // low, medium, high
+  timeMinutes   Int      // Estimated reading time
+  downloads     Int      @default(0)
+  views         Int      @default(0)
+  published     Boolean  @default(false)
+  templateUrl   String?  // Link to downloadable template
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  savedBy       SavedPlaybook[]
+  
+  @@index([domain, published])
+}
+
+model SavedPlaybook {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  playbookId  String
+  playbook    Playbook @relation(fields: [playbookId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  
+  @@unique([userId, playbookId])
+  @@index([userId])
+}
+
+model Expert {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  phone         String
+  domain        String[] // legal, accounting, branding, marketing, tech
+  county        String
+  bio           String   @db.Text
+  rateMin       Int      // KES per hour
+  rateMax       Int
+  rating        Float    @default(0)
+  reviewCount   Int      @default(0)
+  verified      Boolean  @default(false)
+  available     Boolean  @default(true)
+  photoUrl      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  bookings      Booking[]
+}
+
+model Booking {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expertId      String
+  expert        Expert   @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  service       String
+  message       String   @db.Text
+  status        String   @default("pending") // pending, confirmed, completed, cancelled
+  scheduledAt   DateTime?
+  amount        Int?     // KES
+  transactionId String?  @unique
+  transaction   Transaction? @relation(fields: [transactionId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([expertId])
+}
+
+model Transaction {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount            Int      // KES
+  currency          String   @default("KES")
+  provider          String   // mpesa, card
+  status            String   @default("pending") // pending, completed, failed
+  mpesaReceiptNumber String?
+  mpesaCheckoutRequestId String?
+  merchantRequestId String?
+  phoneNumber       String?
+  metadata          Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  booking           Booking?
+  
+  @@index([userId])
+  @@index([mpesaCheckoutRequestId])
+}
+
+model CapitalOpportunity {
+  id            String   @id @default(cuid())
+  title         String
+  titleSw       String?
+  description   String   @db.Text
+  descriptionSw String?  @db.Text
+  type          String   // grant, loan, accelerator, competition
+  amountMin     Int?
+  amountMax     Int?
+  deadline      DateTime
+  sector        String[] // Optional sector filters
+  county        String[] // Optional county filters
+  stage         String[] // startup, growing, established
+  eligibility   String   @db.Text
+  applyUrl      String
+  published     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([deadline, published])
+}

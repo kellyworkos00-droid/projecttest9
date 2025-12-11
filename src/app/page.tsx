@@ -72,18 +72,18 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-8 mt-12">
               <div>
-                <div className="text-3xl font-heading font-bold text-primary">2,500+</div>
+                <div className="text-3xl font-heading font-bold text-primary">3,200+</div>
                 <div className="text-sm text-charcoal/60">Active Businesses</div>
               </div>
               <div className="w-px h-12 bg-sand-dark"></div>
               <div>
-                <div className="text-3xl font-heading font-bold text-primary">150+</div>
+                <div className="text-3xl font-heading font-bold text-primary">180+</div>
                 <div className="text-sm text-charcoal/60">Verified Experts</div>
               </div>
               <div className="w-px h-12 bg-sand-dark"></div>
               <div>
                 <div className="text-3xl font-heading font-bold text-primary">47</div>
-                <div className="text-sm text-charcoal/60">Counties Served</div>
+                <div className="text-sm text-charcoal/60">All Counties</div>
               </div>
             </div>
           </div>
@@ -194,16 +194,16 @@ export default function HomePage() {
       <section className="bg-gradient-to-br from-primary to-primary-dark text-white py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-heading font-bold mb-6">
-            Ready to Grow Your Business?
+            Ready to Transform Your Business?
           </h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Join 2,500+ Kenyan businesses already using BiashaDrive to streamline operations, stay compliant, and unlock new opportunities.
+            Join 3,200+ Kenyan MSMEs using BiashaDrive to stay compliant, improve cashflow, access capital, and connect with expert support—all in one platform.
           </p>
           <Link
-            href="/dashboard"
+            href="/login"
             className="inline-flex items-center gap-2 bg-accent hover:bg-accent-dark text-white px-8 py-4 rounded-lg font-medium transition-colors shadow-lg"
           >
-            Start Your Free Diagnostic
+            Get Started Free
             <ArrowRight className="w-5 h-5" />
           </Link>
         </div>

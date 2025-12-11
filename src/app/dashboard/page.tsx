@@ -150,7 +150,7 @@ export default function DashboardPage() {
               <h3 className="font-heading font-bold text-charcoal mb-2">Need Expert Help?</h3>
               <p className="text-sm text-charcoal/70 mb-4">Connect with verified accountants and lawyers</p>
               <Link
-                href="/experts"
+                href="/login"
                 className="block text-center bg-clay hover:bg-clay-dark text-white px-4 py-2 rounded-lg font-medium transition-colors"
               >
                 Browse Experts
