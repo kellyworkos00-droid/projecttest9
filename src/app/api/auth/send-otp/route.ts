@@ -1,17 +1,13 @@
 import { NextResponse } from 'next/server';
 import { sendVerificationCode } from '@/lib/sms';
-
-// OTP Storage with expiry
-const OTP_STORE = new Map<string, { code: string; expires: number }>();
-
-// Rate limiting: Max 5 OTP requests per phone per hour
-const RATE_LIMIT = new Map<string, { count: number; resetTime: number }>();
+import { getOtpStore, getRateLimit } from '@/lib/otp-store';
 
 const MAX_OTP_ATTEMPTS = 5;
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
 
 function checkRateLimit(phone: string): boolean {
   const now = Date.now();
+  const RATE_LIMIT = getRateLimit();
   const record = RATE_LIMIT.get(phone);
 
   if (!record || now > record.resetTime) {
@@ -53,6 +49,7 @@ export async function POST(request: Request) {
     const expires = Date.now() + 10 * 60 * 1000; // 10 minutes
 
     // Store OTP
+    const OTP_STORE = getOtpStore();
     OTP_STORE.set(phone, { code, expires });
 
     // Log for debugging

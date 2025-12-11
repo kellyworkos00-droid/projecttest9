@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sign } from 'jsonwebtoken';
-
-// Shared OTP store with send-otp route
-const OTP_STORE = new Map<string, { code: string; expires: number }>();
+import { getOtpStore } from '@/lib/otp-store';
 
 export async function POST(request: Request) {
   try {
@@ -32,6 +30,7 @@ export async function POST(request: Request) {
     }
 
     // Check if OTP exists
+    const OTP_STORE = getOtpStore();
     const stored = OTP_STORE.get(phone);
 
     if (!stored) {
