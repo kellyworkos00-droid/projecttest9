@@ -146,14 +146,3 @@ export async function POST(request: Request) {
     );
   }
 }
-
-/**
- * Export OTP store for access from other routes
- */
-export { OTP_STORE };
-    return NextResponse.json(
-      { error: 'Failed to verify OTP' },
-      { status: 500 }
-    );
-  }
-}
