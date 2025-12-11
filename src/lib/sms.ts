@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 /**
- * Send SMS via Africa's Talking API
- * Get API key from: https://africastalking.com/
+ * Send SMS via Infobip API
+ * Get API key from: https://www.infobip.com/
  */
 
 interface SendSmsOptions {
@@ -11,32 +11,33 @@ interface SendSmsOptions {
   retries?: number;
 }
 
-interface AfricasTalkingResponse {
-  SMSMessageData: {
-    Message: string;
-    Recipients: Array<{
-      statusCode: number;
-      number: string;
-      status: string;
-      cost: string;
-      messageId: string;
-    }>;
-  };
+interface InfobipResponse {
+  messages: Array<{
+    to: string;
+    status: {
+      groupId: number;
+      groupName: string;
+      id: number;
+      name: string;
+      description: string;
+    };
+    messageId: string;
+  }>;
 }
 
 /**
- * Send OTP via SMS using Africa's Talking
+ * Send OTP via SMS using Infobip
  */
 export async function sendOtpSms(
   phone: string,
   otp: string
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
-    const apiKey = process.env.AFRICASTALKING_API_KEY;
-    const username = process.env.AFRICASTALKING_USERNAME || 'sandbox';
+    const apiKey = process.env.INFOBIP_API_KEY;
+    const apiBaseUrl = process.env.INFOBIP_API_URL || 'https://k9dxme.api.infobip.com';
 
     if (!apiKey) {
-      console.error('AFRICASTALKING_API_KEY not configured');
+      console.error('INFOBIP_API_KEY not configured');
       return {
         success: false,
         error: 'SMS service not configured'
@@ -46,22 +47,22 @@ export async function sendOtpSms(
     // Format message
     const message = `Your BiashaDrive verification code is: ${otp}. Valid for 10 minutes. Do not share this code.`;
 
-    // Make API call to Africa's Talking
-    const response = await axios.post<AfricasTalkingResponse>(
-      'https://api.africastalking.com/version1/messaging',
+    // Make API call to Infobip
+    const response = await axios.post<InfobipResponse>(
+      `${apiBaseUrl}/sms/2/text/advanced`,
       {
-        username,
-        APIkey: apiKey,
-        recipients: [
+        messages: [
           {
-            phoneNumber: phone,
-            message: message
+            destinations: [{ to: phone }],
+            text: message,
+            from: 'BiashaDrive'
           }
         ]
       },
       {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `App ${apiKey}`,
+          'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         timeout: 10000
@@ -71,24 +72,21 @@ export async function sendOtpSms(
     const data = response.data;
 
     // Check if message was sent successfully
-    if (
-      data.SMSMessageData &&
-      data.SMSMessageData.Recipients &&
-      data.SMSMessageData.Recipients.length > 0
-    ) {
-      const recipient = data.SMSMessageData.Recipients[0];
+    if (data.messages && data.messages.length > 0) {
+      const message = data.messages[0];
 
-      if (recipient.statusCode === 101) {
-        console.log(`OTP sent to ${phone}: ${recipient.messageId}`);
+      // Status code 0 = success, 1 = pending
+      if (message.status.groupId === 1 || message.status.groupId === 0) {
+        console.log(`✅ OTP sent to ${phone}: ${message.messageId}`);
         return {
           success: true,
-          messageId: recipient.messageId
+          messageId: message.messageId
         };
       } else {
-        console.error(`SMS send failed: ${recipient.status}`);
+        console.error(`SMS send failed: ${message.status.description}`);
         return {
           success: false,
-          error: recipient.status
+          error: message.status.description
         };
       }
     }
@@ -115,7 +113,7 @@ export async function sendOtpSms(
 }
 
 /**
- * Send WhatsApp message via Africa's Talking
+ * Send WhatsApp message via Infobip
  * Alternative to SMS with better delivery rates
  */
 export async function sendWhatsAppOtp(
@@ -123,8 +121,8 @@ export async function sendWhatsAppOtp(
   otp: string
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
-    const apiKey = process.env.AFRICASTALKING_API_KEY;
-    const username = process.env.AFRICASTALKING_USERNAME || 'sandbox';
+    const apiKey = process.env.INFOBIP_API_KEY;
+    const apiBaseUrl = process.env.INFOBIP_API_URL || 'https://k9dxme.api.infobip.com';
 
     if (!apiKey) {
       return {
@@ -136,22 +134,18 @@ export async function sendWhatsAppOtp(
     // Format message for WhatsApp
     const message = `Your BiashaDrive verification code is: ${otp}\n\nValid for 10 minutes. Do not share this code.`;
 
-    // Make API call to Africa's Talking WhatsApp API
-    const response = await axios.post<AfricasTalkingResponse>(
-      'https://api.sandbox.africastalking.com/version1/messaging',
+    // Make API call to Infobip WhatsApp API
+    const response = await axios.post<InfobipResponse>(
+      `${apiBaseUrl}/whatsapp/1/message/text`,
       {
-        username,
-        APIkey: apiKey,
-        recipients: [
-          {
-            phoneNumber: phone,
-            message: message
-          }
-        ]
+        to: phone,
+        text: message,
+        from: '1'
       },
       {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `App ${apiKey}`,
+          'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         timeout: 10000
@@ -160,20 +154,13 @@ export async function sendWhatsAppOtp(
 
     const data = response.data;
 
-    if (
-      data.SMSMessageData &&
-      data.SMSMessageData.Recipients &&
-      data.SMSMessageData.Recipients.length > 0
-    ) {
-      const recipient = data.SMSMessageData.Recipients[0];
-
-      if (recipient.statusCode === 101) {
-        console.log(`WhatsApp message sent to ${phone}`);
-        return {
-          success: true,
-          messageId: recipient.messageId
-        };
-      }
+    if (data.messages && data.messages.length > 0) {
+      const message = data.messages[0];
+      console.log(`✅ WhatsApp message sent to ${phone}: ${message.messageId}`);
+      return {
+        success: true,
+        messageId: message.messageId
+      };
     }
 
     return {
