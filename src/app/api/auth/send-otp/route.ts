@@ -104,32 +104,3 @@ export async function POST(request: Request) {
     );
   }
 }
-
-/**
- * Verify OTP and return user (called from verify-otp route)
- * Exported for use in other routes
- */
-export function verifyOtpCode(phone: string, code: string): boolean {
-  const record = OTP_STORE.get(phone);
-
-  if (!record) {
-    console.log(`❌ OTP not found for ${phone}`);
-    return false;
-  }
-
-  if (Date.now() > record.expires) {
-    console.log(`❌ OTP expired for ${phone}`);
-    OTP_STORE.delete(phone);
-    return false;
-  }
-
-  if (record.code !== code) {
-    console.log(`❌ Invalid OTP for ${phone}`);
-    return false;
-  }
-
-  // OTP is valid - remove it
-  OTP_STORE.delete(phone);
-  console.log(`✅ OTP verified for ${phone}`);
-  return true;
-}
