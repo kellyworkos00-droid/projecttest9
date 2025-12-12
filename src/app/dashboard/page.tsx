@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import {
   TrendingUp,
   Calendar,
@@ -190,44 +191,63 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
-        <div className="bg-gradient-to-br from-primary via-primary-light to-accent text-white rounded-2xl p-6 sm:p-8 mb-8">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-heading font-bold mb-2">
-                Welcome back, {userName}! 👋
-              </h1>
-              <p className="text-white/90">
-                {user?.businessName && `${user.businessName}`}
-                {user?.county && ` • ${user.county}`}
-                {user?.sector && ` • ${user.sector}`}
-              </p>
+        <div className="bg-gradient-to-br from-primary via-primary-light to-accent text-white rounded-2xl overflow-hidden mb-8">
+          <div className="grid lg:grid-cols-2 gap-6 p-6 sm:p-8">
+            {/* Left Content */}
+            <div className="flex flex-col justify-between">
+              <div>
+                <h1 className="text-3xl sm:text-4xl font-heading font-bold mb-2">
+                  Welcome back, {userName}! 👋
+                </h1>
+                <p className="text-white/90 mb-6">
+                  {user?.businessName && `${user.businessName}`}
+                  {user?.county && ` • ${user.county}`}
+                  {user?.sector && ` • ${user.sector}`}
+                </p>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="grid sm:grid-cols-2 gap-3">
+                <Link
+                  href="/diagnostics"
+                  className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  Start Diagnostic
+                </Link>
+                <Link
+                  href="/experts"
+                  className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  <Users className="w-4 h-4" />
+                  Find Expert
+                </Link>
+              </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="p-3 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-white"
-              title="Logout"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
+
+            {/* Right - Smiles Image */}
+            <div className="hidden lg:flex items-center justify-center">
+              <div className="relative w-full max-w-sm">
+                <Image
+                  src="/smiles.png"
+                  alt="Happy user using BiashaDrive"
+                  width={400}
+                  height={400}
+                  className="rounded-xl w-full h-auto"
+                  priority
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Quick Actions */}
-          <div className="grid sm:grid-cols-2 gap-3 mt-6">
-            <Link
-              href="/diagnostics"
-              className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-            >
-              <BarChart3 className="w-4 h-4" />
-              Start Diagnostic
-            </Link>
-            <Link
-              href="/experts"
-              className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-            >
-              <Users className="w-4 h-4" />
-              Find Expert
-            </Link>
-          </div>
+          {/* Logout Button - Top Right */}
+          <button
+            onClick={handleLogout}
+            className="absolute top-8 right-8 p-3 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-white"
+            title="Logout"
+          >
+            <LogOut className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Stats Grid */}
