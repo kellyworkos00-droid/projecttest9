@@ -1,27 +1,24 @@
 import { NextResponse } from 'next/server';
 import { sendVerificationCode } from '@/lib/sms';
-import { getOtpStore, getRateLimit } from '@/lib/otp-store';
+import { prisma } from '@/lib/prisma';
 
 const MAX_OTP_ATTEMPTS = 5;
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
 
-function checkRateLimit(phone: string): boolean {
-  const now = Date.now();
-  const RATE_LIMIT = getRateLimit();
-  const record = RATE_LIMIT.get(phone);
-
-  if (!record || now > record.resetTime) {
-    // Create new record
-    RATE_LIMIT.set(phone, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
-    return true;
-  }
-
-  if (record.count >= MAX_OTP_ATTEMPTS) {
-    return false;
-  }
-
-  record.count++;
-  return true;
+async function checkRateLimit(phone: string): Promise<boolean> {
+  const oneHourAgo = new Date(Date.now() - RATE_LIMIT_WINDOW);
+  
+  // Count OTP requests in the last hour
+  const count = await prisma.otp.count({
+    where: {
+      phone,
+      createdAt: {
+        gte: oneHourAgo
+      }
+    }
+  });
+  
+  return count < MAX_OTP_ATTEMPTS;
 }
 
 export async function POST(request: Request) {
@@ -37,7 +34,8 @@ export async function POST(request: Request) {
     }
 
     // Check rate limiting
-    if (!checkRateLimit(phone)) {
+    const canSend = await checkRateLimit(phone);
+    if (!canSend) {
       return NextResponse.json(
         { error: 'Too many OTP requests. Please try again in 1 hour.' },
         { status: 429 }
@@ -46,11 +44,22 @@ export async function POST(request: Request) {
 
     // Generate 6-digit OTP
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const expires = Date.now() + 10 * 60 * 1000; // 10 minutes
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // Store OTP
-    const OTP_STORE = getOtpStore();
-    OTP_STORE.set(phone, { code, expires });
+    // Store OTP in database (upsert to replace existing)
+    await prisma.otp.upsert({
+      where: { phone },
+      update: { 
+        code, 
+        expiresAt,
+        createdAt: new Date() // Reset created time for rate limiting
+      },
+      create: { 
+        phone, 
+        code, 
+        expiresAt 
+      }
+    });
 
     // Log for debugging
     console.log(`📱 OTP generated for ${phone}: ${code} (Expires in 10 minutes)`);

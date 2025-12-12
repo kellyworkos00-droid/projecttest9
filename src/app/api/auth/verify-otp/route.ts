@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sign } from 'jsonwebtoken';
-import { getOtpStore } from '@/lib/otp-store';
 
 export async function POST(request: Request) {
   try {
@@ -29,9 +28,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if OTP exists
-    const OTP_STORE = getOtpStore();
-    const stored = OTP_STORE.get(phone);
+    // Check if OTP exists in database
+    const stored = await prisma.otp.findUnique({
+      where: { phone }
+    });
 
     if (!stored) {
       console.log(`❌ No OTP found for ${phone}`);
@@ -42,8 +42,8 @@ export async function POST(request: Request) {
     }
 
     // Check if OTP expired
-    if (Date.now() > stored.expires) {
-      OTP_STORE.delete(phone);
+    if (new Date() > stored.expiresAt) {
+      await prisma.otp.delete({ where: { phone } });
       console.log(`❌ OTP expired for ${phone}`);
       return NextResponse.json(
         { error: 'Verification code expired. Please request a new one.' },
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     }
 
     // OTP verified - remove it
-    OTP_STORE.delete(phone);
+    await prisma.otp.delete({ where: { phone } });
     console.log(`✅ OTP verified for ${phone}`);
 
     // Find or create user
