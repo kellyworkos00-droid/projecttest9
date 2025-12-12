@@ -19,6 +19,8 @@ import {
   AlertCircle,
   DollarSign,
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 interface User {
@@ -38,6 +40,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
     // Get user from localStorage
@@ -64,6 +67,23 @@ export default function DashboardPage() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     router.push('/login');
+  };
+
+  const companies = [
+    { name: 'Tech Innovations Ltd', industry: 'Software' },
+    { name: 'Green Agriculture Co', industry: 'Farming' },
+    { name: 'Urban Retail Group', industry: 'Retail' },
+    { name: 'Swift Logistics Inc', industry: 'Transportation' },
+    { name: 'Creative Studios Pro', industry: 'Digital Services' },
+    { name: 'Health Tech Solutions', industry: 'Healthcare' },
+  ];
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % companies.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + companies.length) % companies.length);
   };
 
   if (loading) {
@@ -298,6 +318,83 @@ export default function DashboardPage() {
             </div>
             <h3 className="font-semibold text-charcoal mb-1">Diagnostics</h3>
             <p className="text-sm text-charcoal/60">Completed</p>
+          </div>
+        </div>
+
+        {/* Companies Slider */}
+        <div className="bg-white rounded-xl p-8 border border-gray-200 mb-8">
+          <h2 className="text-2xl font-heading font-bold text-charcoal mb-6 text-center">
+            Trusted by Businesses Across Kenya
+          </h2>
+          
+          <div className="relative max-w-4xl mx-auto">
+            {/* Slider Container */}
+            <div className="overflow-hidden rounded-lg">
+              <div
+                className="flex transition-transform duration-500 ease-out"
+                style={{
+                  transform: `translateX(-${currentSlide * 100}%)`,
+                }}
+              >
+                {companies.map((company, index) => (
+                  <div
+                    key={index}
+                    className="min-w-full flex items-center justify-center py-12 px-4 bg-gradient-to-br from-gray-50 to-white"
+                  >
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Users className="w-8 h-8 text-primary" />
+                      </div>
+                      <h3 className="text-xl font-bold text-charcoal mb-2">
+                        {company.name}
+                      </h3>
+                      <p className="text-charcoal/60 font-medium">
+                        {company.industry}
+                      </p>
+                      <div className="mt-4 flex justify-center gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <span key={i} className="text-accent text-lg">
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Navigation Buttons */}
+            <button
+              onClick={prevSlide}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-16 p-2 bg-primary hover:bg-primary-light text-white rounded-full transition-all transform hover:scale-110"
+              aria-label="Previous company"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              onClick={nextSlide}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-16 p-2 bg-primary hover:bg-primary-light text-white rounded-full transition-all transform hover:scale-110"
+              aria-label="Next company"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+
+            {/* Dots Indicator */}
+            <div className="flex justify-center gap-2 mt-6">
+              {companies.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`h-2 rounded-full transition-all ${
+                    index === currentSlide
+                      ? 'bg-primary w-8'
+                      : 'bg-gray-300 w-2 hover:bg-gray-400'
+                  }`}
+                  aria-label={`Go to company ${index + 1}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
