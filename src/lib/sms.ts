@@ -83,7 +83,7 @@ export async function sendOtpSms(
           messageId: message.messageId
         };
       } else {
-        console.error(`SMS send failed: ${message.status.description}`);
+        console.error(`❌ SMS send failed: ${message.status.description}`);
         return {
           success: false,
           error: message.status.description
@@ -96,7 +96,34 @@ export async function sendOtpSms(
       error: 'Unexpected API response'
     };
   } catch (error) {
-    console.error('SMS sending error:', error);
+    if (error instanceof Error) {
+      console.error('❌ SMS sending error:', error.message);
+      
+      // Handle axios errors with response
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          const status = error.response.status;
+          const message = error.response.data?.message || error.response.statusText;
+          console.error(`   Status: ${status}`);
+          console.error(`   Message: ${message}`);
+          return {
+            success: false,
+            error: `SMS API Error: ${message}`
+          };
+        } else if (error.request) {
+          console.error('   No response from SMS API');
+          return {
+            success: false,
+            error: 'SMS service unreachable'
+          };
+        }
+      }
+      
+      return {
+        success: false,
+        error: error.message
+      };
+    }
     
     if (axios.isAxiosError(error)) {
       return {
